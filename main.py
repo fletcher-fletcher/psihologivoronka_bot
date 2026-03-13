@@ -322,14 +322,31 @@ async def topic_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def show_specialists_by_names(update: Update, context: ContextTypes.DEFAULT_TYPE, 
                                    names: list, header: str):
-    """Показывает специалистов по списку имен"""
+    """Показывает специалистов по списку имен с кнопками на каждого"""
     query = update.callback_query
     
+    # Словарь ссылок на страницы специалистов
+    specialist_links = {
+        "Анастасия Дира": "https://vmarte.life/anastasiyadira",
+        "Александра Иванова": "https://vmarte.life/aleksandraivanova",
+        "Мария Белых": "https://vmarte.life/belyhmaria",
+        "Екатерина Бычкова": "https://vmarte.life/bychkovaekaterina",
+        "Армина Нерсесян": "https://vmarte.life/arminanarsesyan",
+        "Юлия Курчанова": "https://vmarte.life/kurshanovayuliya",
+        "Лала Джагитян": "https://vmarte.life/laladzhagityan",
+        "Вилена Васильева": "https://vmarte.life/vasilevavilena",
+        "Анастасия Блинова": "https://vmarte.life/blinovaanastasiya",
+        "Анна Карманова": "https://vmarte.life/karmanovaanna"
+    }
+    
     response = f"{header}\n\n"
+    keyboard = []
     
     for name in names:
         if name in SPECIALISTS:
             data = SPECIALISTS[name]
+            
+            # Информация о специалисте
             response += f"👤 {name}\n"
             response += f"📝 {data['description']}\n"
             if data.get('experience'):
@@ -342,15 +359,27 @@ async def show_specialists_by_names(update: Update, context: ContextTypes.DEFAUL
             if data.get('price_hypnosis'):
                 response += f" | Гипноз: {data['price_hypnosis']} руб"
             response += "\n\n"
+            
+            # Кнопка для этого специалиста
+            if name in specialist_links:
+                keyboard.append([InlineKeyboardButton(f"📌 Подробнее о {name}", url=specialist_links[name])])
+            
             response += "-" * 30 + "\n\n"
     
-    # Добавляем кнопку записи и ТЕКСТ вместо кнопки
-    keyboard = [
-        [InlineKeyboardButton("📅 Записаться", url=config.BOOKING_URL)]
-    ]
+    # Добавляем информацию о промокоде
+    response += "🎁 ДАРИМ ПРОМОКОД!\n"
+    response += "🔥 МАРТhelp - скидка 20% на первую сессию с любым специалистом центра!\n\n"
+    response += "✨ Больше бонусов и полезного в канале: @martcentrhappy\n\n"
+    response += "📌 Как получить скидку:\n"
+    response += "1. Нажмите кнопку «Записаться» ниже\n"
+    response += "2. В графе «Промокод» укажите специалиста и промокод\n"
+    response += "3. Пример: МАРТhelp Александра Иванова\n"
+    
+    # Добавляем общую кнопку записи
+    keyboard.append([InlineKeyboardButton("📅 Записаться со скидкой 20%", url=config.BOOKING_URL)])
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Добавляем текст с инструкцией
     response += "\n\n❓ Нажмите /start чтобы начать заново"
     
     await query.edit_message_text(response, reply_markup=reply_markup)
