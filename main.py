@@ -89,11 +89,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(
-        "👋 Здравствуйте! Я помогу подобрать специалиста.\n\n"
-        "Вы ищете специалиста для своей индивидуальной работы?",
-        reply_markup=reply_markup
-    )
+    # Определяем, откуда пришел вызов
+    if update.message:
+        # Обычный /start
+        await update.message.reply_text(
+            "👋 Здравствуйте! Я помогу подобрать специалиста.\n\n"
+            "Вы ищете специалиста для своей индивидуальной работы?",
+            reply_markup=reply_markup
+        )
+    elif update.callback_query:
+        # Если вызвано из callback (например, после нажатия кнопки)
+        await update.callback_query.message.reply_text(
+            "👋 Здравствуйте! Я помогу подобрать специалиста.\n\n"
+            "Вы ищете специалиста для своей индивидуальной работы?",
+            reply_markup=reply_markup
+        )
+    
     return INDIVIDUAL_CHOICE
 
 async def individual_choice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -412,7 +423,10 @@ def main():
             NEURO_CHOICE: [CallbackQueryHandler(neuro_callback, pattern="^neuro_")],
             GROUP_CHOICE: [CallbackQueryHandler(group_callback, pattern="^group_")],
         },
-        fallbacks=[CommandHandler('cancel', cancel)],
+        fallbacks=[
+            CommandHandler('cancel', cancel),
+            CommandHandler('start', start)  # 👈 Теперь /start работает в любой момент
+        ],
         per_message=False,
         name="psychologist_bot"
     )
